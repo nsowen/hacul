@@ -1,0 +1,309 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Set up a CUL stick",
+        "description": "Choose the CUL stick. For a stick on the network (ser2net, CUNO) enter a URL like `socket://192.168.1.10:2323`.\n\nThe stick is set up for eQ-3 MAX!, currently the only supported protocol: it becomes the controller of a MAX! network.",
+        "data": {
+          "url": "Device",
+          "baudrate": "Baud rate",
+          "name": "Stick name",
+          "max_address": "MAX! controller address"
+        },
+        "data_description": {
+          "url": "Serial port of the stick. Prefer the /dev/serial/by-id path, it survives reboots.",
+          "baudrate": "busware CUL ignores this; nanoCUL needs 38400.",
+          "name": "Shown in entity names when several sticks are used.",
+          "max_address": "Six hex digits. Thermostats only accept commands from the controller they are paired with: when migrating from FHEM use its CUL_MAX address (default 123456)."
+        }
+      },
+      "usb_confirm": {
+        "title": "CUL stick found",
+        "description": "A CUL stick was found at {url}. Set it up as controller of a MAX! network?",
+        "data": {
+          "max_address": "MAX! controller address"
+        },
+        "data_description": {
+          "max_address": "Six hex digits. When migrating from FHEM use its CUL_MAX address (default 123456)."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The device did not answer like a CUL running culfw.",
+      "invalid_address": "Enter six hex digits, for example 123456.",
+      "reserved_address": "This address is reserved (000000, or the fake wall thermostat / window contact)."
+    },
+    "abort": {
+      "already_configured": "This MAX! network or stick is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "settings": "Settings",
+          "add_stick": "Add a stick",
+          "remove_stick": "Remove a stick",
+          "zone_select": "Heating zones (MAX! groups)",
+          "schedule_select": "Week profile from a schedule",
+          "external_select": "Room temperature and window sensors"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "adopt_devices": "Adopt paired devices",
+          "fast_send_after_wake_up": "Fast send after wake-up (experimental)"
+        },
+        "data_description": {
+          "adopt_devices": "Add devices that are already paired with this controller address as soon as they send something.",
+          "fast_send_after_wake_up": "When several messages wait for one thermostat, wake it up first and send the rest without the 1 second preamble. Saves airtime, not yet confirmed on all devices."
+        }
+      },
+      "add_stick": {
+        "title": "Add a stick",
+        "description": "Another CUL extends the radio range of the same MAX! network. Messages are sent through the stick that receives a device best.",
+        "data": {
+          "url": "Device",
+          "baudrate": "Baud rate",
+          "name": "Stick name"
+        }
+      },
+      "remove_stick": {
+        "title": "Remove a stick",
+        "data": {
+          "name": "Stick"
+        }
+      },
+      "schedule_select": {
+        "title": "Week profile from a schedule",
+        "data": {
+          "thermostat": "Thermostat"
+        }
+      },
+      "schedule": {
+        "title": "Week profile of {thermostat}",
+        "description": "The blocks of the schedule become heating periods, the time in between gets the base temperature. A block can set its own temperature with the additional data `temperature: 21`. The thermostat runs the profile itself; changes are sent automatically, only for days that changed. Leave the schedule empty to unlink.",
+        "data": {
+          "schedule_entity": "Schedule",
+          "base_temperature": "Base temperature",
+          "default_temperature": "Temperature during blocks"
+        },
+        "data_description": {
+          "default_temperature": "Used for blocks without a temperature in their additional data."
+        }
+      },
+      "external_select": {
+        "title": "Room temperature and window sensors",
+        "data": {
+          "thermostat": "Thermostat"
+        }
+      },
+      "external": {
+        "title": "Sensors for {thermostat}",
+        "description": "The CUL forwards the values as a virtual wall thermostat and window contact; the thermostat is linked to them automatically. Leave both empty to unlink.",
+        "data": {
+          "temperature_sensor": "Room temperature sensor",
+          "window_sensor": "Window sensor",
+          "send_interval": "Minimum interval between temperature updates"
+        },
+        "data_description": {
+          "temperature_sensor": "The thermostat regulates on this temperature instead of its own sensor next to the radiator.",
+          "send_interval": "Each update uses about 1 second of the 36 seconds per hour a stick may send."
+        }
+      },
+      "zone_select": {
+        "title": "Set up a heating zone",
+        "description": "A heating zone is a MAX! group: devices that share one group id and are linked with each other. A wall thermostat then controls the radiator thermostats of its zone, a window contact lowers them, and a set point reaches the whole zone with one radio message.\n\nA zone is not necessarily a room: a large room with two wall thermostats is two zones. Suggestions come from Home Assistant areas (split per wall thermostat), from groups the devices already have, and from devices seen talking to each other. Leave the selection empty to choose the devices yourself.",
+        "data": {
+          "zone": "Suggested zone"
+        }
+      },
+      "zone": {
+        "title": "Heating zone",
+        "description": "Each device needs one message for the group id and one per link, about 1 second of airtime each; a zone of four devices needs about 16 messages and up to 15 minutes. Window contacts only receive right after they transmitted: open and close the window once afterwards.",
+        "data": {
+          "devices": "Devices of the zone",
+          "group": "Group id",
+          "link": "Link the devices with each other",
+          "shared_window_contacts": "Window contacts shared with other zones",
+          "allow_several_wall_thermostats": "Use several wall thermostats in this zone anyway"
+        },
+        "data_description": {
+          "group": "1 to 255; devices with the same id form a zone. 0: no group, for example a radiator thermostat without wall thermostat, which is a zone of its own.",
+          "link": "Needed for a new zone. Links already known are not sent again.",
+          "shared_window_contacts": "Contacts that should also act on this zone, e.g. a door between two zones. They are linked with this zone's thermostats but keep their own group; best leave them without group.",
+          "allow_several_wall_thermostats": "Each wall thermostat sends its set point to all thermostats it is linked with, so two of them overrule each other."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The device did not answer like a CUL running culfw.",
+      "stick_exists": "A stick with this device or name is already part of this network.",
+      "no_devices": "Select at least one device.",
+      "several_wall_thermostats": "This zone would get several wall thermostats. They would overrule each other; usually each wall thermostat is a zone of its own."
+    },
+    "abort": {
+      "no_thermostats": "No thermostats known yet. Pair a thermostat first.",
+      "no_devices": "No thermostats or window contacts known yet.",
+      "zone_started": "The devices are being set up as heating zone {group} in the background. The send queue sensor shows the progress; devices that could not be reached are reported under Repairs."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "valve_position": {
+        "name": "Valve position"
+      },
+      "scheduled_temperature": {
+        "name": "Scheduled temperature"
+      },
+      "next_schedule_change": {
+        "name": "Next schedule change"
+      },
+      "last_seen": {
+        "name": "Last seen"
+      },
+      "airtime": {
+        "name": "Available airtime {stick}"
+      },
+      "send_queue": {
+        "name": "Send queue"
+      },
+      "mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Automatic",
+          "manual": "Manual",
+          "temporary": "Temporary",
+          "boost": "Boost"
+        }
+      },
+      "temporary_until": {
+        "name": "Temporary until"
+      },
+      "group": {
+        "name": "Heating zone"
+      },
+      "rssi_stick": {
+        "name": "Signal strength {stick}"
+      }
+    },
+    "binary_sensor": {
+      "radio_error": {
+        "name": "Radio link"
+      },
+      "stick_connected": {
+        "name": "Stick {stick}"
+      },
+      "panel_locked": {
+        "name": "Buttons locked"
+      },
+      "dst_active": {
+        "name": "Automatic daylight saving time"
+      },
+      "gateway_known": {
+        "name": "Paired with controller"
+      }
+    },
+    "button": {
+      "start_pairing": {
+        "name": "Start pairing"
+      }
+    },
+    "event": {
+      "button": {
+        "name": "Button",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "auto": "Auto",
+              "eco": "Eco"
+            }
+          }
+        }
+      }
+    },
+    "switch": {
+      "display_actual_temperature": {
+        "name": "Show measured temperature"
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "No CUL stick could be opened: {error}"
+    },
+    "command_failed": {
+      "message": "The command could not be delivered: {error}"
+    },
+    "until_in_past": {
+      "message": "The end time must be in the future."
+    },
+    "invalid_week_profile": {
+      "message": "The week profile cannot be stored on the thermostat: {error}"
+    },
+    "not_for_zone": {
+      "message": "A heating zone has no group of its own. Change the group of the single thermostats, or set up zones in the integration's options."
+    }
+  },
+  "issues": {
+    "schedule_invalid": {
+      "title": "Schedule cannot be used as week profile",
+      "description": "The schedule {schedule} for thermostat {device} cannot be written: {error}\n\nA thermostat stores at most 13 switch points per day in 5 minute steps and temperatures between 4.5 and 30.5 °C in 0.5 steps. Simplify the schedule; it is checked again automatically."
+    },
+    "zone_incomplete": {
+      "title": "Heating zone {group} not completely set up",
+      "description": "These devices did not confirm their group id or links: {devices}\n\nCheck that they are in range (batteries, distance to the stick) and set up the zone again under the integration's options; known links are not sent twice."
+    }
+  },
+  "services": {
+    "set_week_profile": {
+      "name": "Set week profile",
+      "description": "Writes a week profile to the thermostat. Only days that differ from the known profile are sent.",
+      "fields": {
+        "profile": {
+          "name": "Profile",
+          "description": "Heating periods per weekday, e.g. `monday: [{from: \"06:00\", to: \"08:30\", temperature: 21}]`. Days without periods use the base temperature all day."
+        },
+        "base_temperature": {
+          "name": "Base temperature",
+          "description": "Temperature outside the periods."
+        }
+      }
+    },
+    "get_week_profile": {
+      "name": "Get week profile",
+      "description": "Returns the week profile last written to the thermostat. Profiles cannot be read from the device, so it is unknown until written once."
+    },
+    "set_temporary_temperature": {
+      "name": "Set temporary temperature",
+      "description": "Holds a temperature until the given time, then the thermostat returns to its week profile.",
+      "fields": {
+        "temperature": {
+          "name": "Temperature",
+          "description": "Temperature to hold."
+        },
+        "until": {
+          "name": "Until",
+          "description": "End of the temporary temperature (30 minute resolution)."
+        }
+      }
+    },
+    "set_group": {
+      "name": "Set group",
+      "description": "Assigns a single thermostat to a MAX! group (heating zone), or removes it with 0. A set point sent to one device of a group reaches all of them. To set up a complete zone with links, use the integration's options.",
+      "fields": {
+        "group": {
+          "name": "Group",
+          "description": "Group id between 1 and 255, or 0."
+        }
+      }
+    }
+  },
+  "device": {
+    "zone": {
+      "name": "Heating zone {group}"
+    }
+  }
+}

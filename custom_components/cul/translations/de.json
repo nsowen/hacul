@@ -1,0 +1,309 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "CUL-Stick einrichten",
+        "description": "Wähle den CUL-Stick. Für einen Stick im Netzwerk (ser2net, CUNO) gib eine URL wie `socket://192.168.1.10:2323` ein.\n\nDer Stick wird für eQ-3 MAX! eingerichtet, das derzeit einzige unterstützte Protokoll: Er wird zur Zentrale eines MAX!-Netzwerks.",
+        "data": {
+          "url": "Gerät",
+          "baudrate": "Baudrate",
+          "name": "Name des Sticks",
+          "max_address": "MAX!-Controller-Adresse"
+        },
+        "data_description": {
+          "url": "Serielle Schnittstelle des Sticks. Der Pfad unter /dev/serial/by-id bleibt auch nach einem Neustart gleich.",
+          "baudrate": "Der busware CUL ignoriert den Wert, ein nanoCUL benötigt 38400.",
+          "name": "Erscheint in Entitätsnamen, wenn mehrere Sticks verwendet werden.",
+          "max_address": "Sechs Hex-Ziffern. Thermostate nehmen nur Befehle von dem Controller an, mit dem sie gepairt sind: Bei einem Umstieg von FHEM dessen CUL_MAX-Adresse verwenden (Standard 123456)."
+        }
+      },
+      "usb_confirm": {
+        "title": "CUL-Stick gefunden",
+        "description": "Unter {url} wurde ein CUL-Stick gefunden. Als Zentrale eines MAX!-Netzwerks einrichten?",
+        "data": {
+          "max_address": "MAX!-Controller-Adresse"
+        },
+        "data_description": {
+          "max_address": "Sechs Hex-Ziffern. Bei einem Umstieg von FHEM dessen CUL_MAX-Adresse verwenden (Standard 123456)."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Das Gerät hat nicht wie ein CUL mit culfw geantwortet.",
+      "invalid_address": "Sechs Hex-Ziffern eingeben, zum Beispiel 123456.",
+      "reserved_address": "Diese Adresse ist reserviert (000000 oder virtuelles Wandthermostat / virtueller Fensterkontakt)."
+    },
+    "abort": {
+      "already_configured": "Dieses MAX!-Netzwerk oder dieser Stick ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "settings": "Einstellungen",
+          "add_stick": "Stick hinzufügen",
+          "remove_stick": "Stick entfernen",
+          "zone_select": "Heizzonen (MAX!-Gruppen)",
+          "schedule_select": "Wochenprofil aus einem Zeitplan",
+          "external_select": "Raumtemperatur- und Fenstersensoren"
+        }
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "data": {
+          "adopt_devices": "Gepairte Geräte übernehmen",
+          "fast_send_after_wake_up": "Schnelles Senden nach dem Aufwecken (experimentell)"
+        },
+        "data_description": {
+          "adopt_devices": "Geräte, die bereits mit dieser Controller-Adresse gepairt sind, hinzufügen, sobald sie etwas senden.",
+          "fast_send_after_wake_up": "Warten mehrere Nachrichten auf ein Thermostat, wird es zuerst aufgeweckt und der Rest ohne die 1-Sekunden-Präambel gesendet. Spart Sendezeit, ist aber noch nicht auf allen Geräten bestätigt."
+        }
+      },
+      "add_stick": {
+        "title": "Stick hinzufügen",
+        "description": "Ein weiterer CUL erweitert die Funkreichweite desselben MAX!-Netzwerks. Gesendet wird über den Stick, der ein Gerät am besten empfängt.",
+        "data": {
+          "url": "Gerät",
+          "baudrate": "Baudrate",
+          "name": "Name des Sticks"
+        }
+      },
+      "remove_stick": {
+        "title": "Stick entfernen",
+        "data": {
+          "name": "Stick"
+        }
+      },
+      "schedule_select": {
+        "title": "Wochenprofil aus einem Zeitplan",
+        "data": {
+          "thermostat": "Thermostat"
+        }
+      },
+      "schedule": {
+        "title": "Wochenprofil von {thermostat}",
+        "description": "Die Blöcke des Zeitplans werden zu Heizzeiten, dazwischen gilt die Grundtemperatur. Ein Block kann über die zusätzlichen Daten `temperature: 21` eine eigene Temperatur festlegen. Das Thermostat führt das Profil selbst aus; Änderungen werden automatisch übertragen, nur für geänderte Tage. Zeitplan leer lassen, um die Verknüpfung zu lösen.",
+        "data": {
+          "schedule_entity": "Zeitplan",
+          "base_temperature": "Grundtemperatur",
+          "default_temperature": "Temperatur während der Blöcke"
+        },
+        "data_description": {
+          "default_temperature": "Gilt für Blöcke ohne Temperatur in den zusätzlichen Daten."
+        }
+      },
+      "external_select": {
+        "title": "Raumtemperatur- und Fenstersensoren",
+        "data": {
+          "thermostat": "Thermostat"
+        }
+      },
+      "external": {
+        "title": "Sensoren für {thermostat}",
+        "description": "Der CUL leitet die Werte als virtuelles Wandthermostat und virtueller Fensterkontakt weiter; das Thermostat wird automatisch damit verknüpft. Beide Felder leer lassen, um die Verknüpfung zu lösen.",
+        "data": {
+          "temperature_sensor": "Raumtemperatursensor",
+          "window_sensor": "Fenstersensor",
+          "send_interval": "Mindestabstand zwischen Temperaturupdates"
+        },
+        "data_description": {
+          "temperature_sensor": "Das Thermostat regelt auf diese Temperatur statt auf seinen eigenen Sensor am Heizkörper.",
+          "send_interval": "Jedes Update belegt etwa 1 Sekunde der 36 Sekunden pro Stunde, die ein Stick senden darf."
+        }
+      },
+      "zone_select": {
+        "title": "Heizzone einrichten",
+        "description": "Eine Heizzone ist eine MAX!-Gruppe: Geräte mit derselben Gruppen-ID, die miteinander verknüpft sind. Ein Wandthermostat steuert dann die Heizkörperthermostate seiner Zone, ein Fensterkontakt senkt sie ab, und eine Solltemperatur erreicht die ganze Zone mit einer Funknachricht.\n\nEine Zone ist nicht unbedingt ein Raum: Ein großer Raum mit zwei Wandthermostaten sind zwei Zonen. Vorschläge stammen aus den Bereichen in Home Assistant (aufgeteilt nach Wandthermostat), aus Gruppen, die die Geräte schon haben, und aus Geräten, die miteinander funken. Ohne Auswahl wählst du die Geräte selbst aus.",
+        "data": {
+          "zone": "Vorgeschlagene Zone"
+        }
+      },
+      "zone": {
+        "title": "Heizzone",
+        "description": "Jedes Gerät braucht eine Nachricht für die Gruppen-ID und eine pro Verknüpfung, jeweils etwa 1 Sekunde Sendezeit; eine Zone mit vier Geräten braucht etwa 16 Nachrichten und bis zu 15 Minuten. Fensterkontakte empfangen nur direkt nachdem sie gesendet haben: Öffne und schließe das Fenster danach einmal.",
+        "data": {
+          "devices": "Geräte der Zone",
+          "group": "Gruppen-ID",
+          "link": "Geräte miteinander verknüpfen",
+          "shared_window_contacts": "Mit anderen Zonen geteilte Fensterkontakte",
+          "allow_several_wall_thermostats": "Trotzdem mehrere Wandthermostate in dieser Zone verwenden"
+        },
+        "data_description": {
+          "group": "1 bis 255; Geräte mit derselben ID bilden eine Zone. 0: keine Gruppe, z. B. ein Heizkörperthermostat ohne Wandthermostat, das eine eigene Zone ist.",
+          "link": "Für eine neue Zone nötig. Bekannte Verknüpfungen werden nicht erneut gesendet.",
+          "shared_window_contacts": "Kontakte, die auch auf diese Zone wirken sollen, z. B. eine Tür zwischen zwei Zonen. Sie werden mit den Thermostaten dieser Zone verknüpft, behalten aber ihre Gruppe; am besten lässt du sie ohne Gruppe.",
+          "allow_several_wall_thermostats": "Jedes Wandthermostat schickt seine Solltemperatur an alle verknüpften Thermostate, zwei davon überstimmen sich also gegenseitig."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Das Gerät hat nicht wie ein CUL mit culfw geantwortet.",
+      "stick_exists": "Ein Stick mit diesem Gerät oder Namen gehört bereits zu diesem Netzwerk.",
+      "no_devices": "Wähle mindestens ein Gerät aus.",
+      "several_wall_thermostats": "Diese Zone bekäme mehrere Wandthermostate. Sie würden sich gegenseitig überstimmen; meist ist jedes Wandthermostat eine eigene Zone."
+    },
+    "abort": {
+      "no_thermostats": "Noch keine Thermostate bekannt. Zuerst ein Thermostat pairen.",
+      "no_devices": "Noch keine Thermostate oder Fensterkontakte bekannt.",
+      "zone_started": "Die Geräte werden im Hintergrund als Heizzone {group} eingerichtet. Der Sensor Sendewarteschlange zeigt den Fortschritt; nicht erreichbare Geräte erscheinen unter Reparaturen."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "valve_position": {
+        "name": "Ventilstellung"
+      },
+      "scheduled_temperature": {
+        "name": "Geplante Temperatur"
+      },
+      "next_schedule_change": {
+        "name": "Nächster Schaltpunkt"
+      },
+      "last_seen": {
+        "name": "Zuletzt gesehen"
+      },
+      "airtime": {
+        "name": "Verfügbare Sendezeit {stick}"
+      },
+      "send_queue": {
+        "name": "Sendewarteschlange"
+      },
+      "mode": {
+        "name": "Modus",
+        "state": {
+          "auto": "Automatisch",
+          "manual": "Manuell",
+          "temporary": "Temporär",
+          "boost": "Boost"
+        }
+      },
+      "temporary_until": {
+        "name": "Temporär bis"
+      },
+      "group": {
+        "name": "Heizzone"
+      },
+      "rssi_stick": {
+        "name": "Signalstärke {stick}"
+      }
+    },
+    "binary_sensor": {
+      "radio_error": {
+        "name": "Funkverbindung"
+      },
+      "stick_connected": {
+        "name": "Stick {stick}"
+      },
+      "panel_locked": {
+        "name": "Tasten gesperrt"
+      },
+      "dst_active": {
+        "name": "Automatische Sommerzeit"
+      },
+      "gateway_known": {
+        "name": "Mit Zentrale gekoppelt"
+      }
+    },
+    "button": {
+      "start_pairing": {
+        "name": "Pairing starten"
+      }
+    },
+    "event": {
+      "button": {
+        "name": "Taste",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "auto": "Auto",
+              "eco": "Eco"
+            }
+          }
+        }
+      }
+    },
+    "switch": {
+      "display_actual_temperature": {
+        "name": "Gemessene Temperatur anzeigen"
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Es konnte kein CUL-Stick geöffnet werden: {error}"
+    },
+    "command_failed": {
+      "message": "Der Befehl konnte nicht zugestellt werden: {error}"
+    },
+    "until_in_past": {
+      "message": "Das Ende muss in der Zukunft liegen."
+    },
+    "invalid_week_profile": {
+      "message": "Das Wochenprofil kann nicht im Thermostat gespeichert werden: {error}"
+    },
+    "not_for_zone": {
+      "message": "Eine Heizzone hat keine eigene Gruppe. Ändere die Gruppe der einzelnen Thermostate oder richte Zonen in den Optionen der Integration ein."
+    }
+  },
+  "issues": {
+    "schedule_invalid": {
+      "title": "Zeitplan kann nicht als Wochenprofil verwendet werden",
+      "description": "Der Zeitplan {schedule} für Thermostat {device} kann nicht übertragen werden: {error}\n\nEin Thermostat speichert höchstens 13 Schaltpunkte pro Tag in 5-Minuten-Schritten und Temperaturen zwischen 4,5 und 30,5 °C in 0,5er-Schritten. Den Zeitplan vereinfachen; er wird automatisch erneut geprüft."
+    },
+    "zone_incomplete": {
+      "title": "Heizzone {group} nicht vollständig eingerichtet",
+      "description": "Diese Geräte haben Gruppen-ID oder Verknüpfungen nicht bestätigt: {devices}\n\nPrüfe, ob sie in Reichweite sind (Batterien, Abstand zum Stick), und richte die Zone in den Optionen der Integration erneut ein; bekannte Verknüpfungen werden nicht doppelt gesendet."
+    }
+  },
+  "services": {
+    "set_week_profile": {
+      "name": "Wochenprofil setzen",
+      "description": "Schreibt ein Wochenprofil in das Thermostat. Übertragen werden nur Tage, die vom bekannten Profil abweichen.",
+      "fields": {
+        "profile": {
+          "name": "Profil",
+          "description": "Heizzeiten pro Wochentag, z. B. `monday: [{from: \"06:00\", to: \"08:30\", temperature: 21}]`. Tage ohne Heizzeiten erhalten den ganzen Tag die Grundtemperatur."
+        },
+        "base_temperature": {
+          "name": "Grundtemperatur",
+          "description": "Temperatur außerhalb der Heizzeiten."
+        }
+      }
+    },
+    "get_week_profile": {
+      "name": "Wochenprofil abfragen",
+      "description": "Liefert das zuletzt in das Thermostat geschriebene Wochenprofil. Profile lassen sich nicht aus dem Gerät auslesen und sind daher bis zum ersten Schreiben unbekannt."
+    },
+    "set_temporary_temperature": {
+      "name": "Temporäre Temperatur setzen",
+      "description": "Hält eine Temperatur bis zum angegebenen Zeitpunkt, danach kehrt das Thermostat zu seinem Wochenprofil zurück.",
+      "fields": {
+        "temperature": {
+          "name": "Temperatur",
+          "description": "Zu haltende Temperatur."
+        },
+        "until": {
+          "name": "Bis",
+          "description": "Ende der temporären Temperatur (Auflösung 30 Minuten)."
+        }
+      }
+    },
+    "set_group": {
+      "name": "Gruppe setzen",
+      "description": "Ordnet ein einzelnes Thermostat einer MAX!-Gruppe (Heizzone) zu oder entfernt es mit 0. Eine Solltemperatur an ein Gerät der Gruppe erreicht alle. Eine vollständige Zone mit Verknüpfungen richtest du in den Optionen der Integration ein.",
+      "fields": {
+        "group": {
+          "name": "Gruppe",
+          "description": "Gruppennummer zwischen 1 und 255 oder 0."
+        }
+      }
+    }
+  },
+  "device": {
+    "zone": {
+      "name": "Heizzone {group}"
+    }
+  }
+}

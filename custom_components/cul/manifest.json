@@ -1,0 +1,22 @@
+{
+  "domain": "cul",
+  "name": "CUL",
+  "after_dependencies": ["usb"],
+  "codeowners": ["@nsowen"],
+  "config_flow": true,
+  "dependencies": ["schedule"],
+  "documentation": "https://github.com/nsowen/hacul",
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/nsowen/hacul/issues",
+  "loggers": ["pycul"],
+  "requirements": ["pycul==0.1.0"],
+  "usb": [
+    {
+      "vid": "03EB",
+      "pid": "204B",
+      "description": "*cul*"
+    }
+  ],
+  "version": "0.1.0"
+}

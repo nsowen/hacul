@@ -1,0 +1,87 @@
+{
+  "entity": {
+    "sensor": {
+      "valve_position": {
+        "default": "mdi:valve"
+      },
+      "scheduled_temperature": {
+        "default": "mdi:calendar-clock"
+      },
+      "next_schedule_change": {
+        "default": "mdi:calendar-arrow-right"
+      },
+      "last_seen": {
+        "default": "mdi:radio-tower"
+      },
+      "airtime": {
+        "default": "mdi:timer-sand"
+      },
+      "send_queue": {
+        "default": "mdi:tray-full"
+      },
+      "mode": {
+        "default": "mdi:thermostat-auto",
+        "state": {
+          "manual": "mdi:hand-back-right",
+          "temporary": "mdi:timer-outline",
+          "boost": "mdi:fire"
+        }
+      },
+      "temporary_until": {
+        "default": "mdi:timer-outline"
+      },
+      "group": {
+        "default": "mdi:home-group"
+      }
+    },
+    "binary_sensor": {
+      "radio_error": {
+        "default": "mdi:access-point-check",
+        "state": {
+          "on": "mdi:access-point-off"
+        }
+      },
+      "panel_locked": {
+        "default": "mdi:lock-open-variant",
+        "state": {
+          "on": "mdi:lock"
+        }
+      },
+      "dst_active": {
+        "default": "mdi:clock-outline"
+      },
+      "gateway_known": {
+        "default": "mdi:router-wireless"
+      }
+    },
+    "button": {
+      "start_pairing": {
+        "default": "mdi:link-plus"
+      }
+    },
+    "event": {
+      "button": {
+        "default": "mdi:gesture-tap-button"
+      }
+    },
+    "switch": {
+      "display_actual_temperature": {
+        "default": "mdi:thermometer"
+      }
+    }
+  },
+  "services": {
+    "set_week_profile": {
+      "service": "mdi:calendar-edit"
+    },
+    "get_week_profile": {
+      "service": "mdi:calendar-search"
+    },
+    "set_temporary_temperature": {
+      "service": "mdi:thermometer-clock"
+    },
+    "set_group": {
+      "service": "mdi:home-group"
+    }
+  }
+}
