@@ -21,7 +21,7 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfTime,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 import homeassistant.util.dt as dt_util
@@ -182,10 +182,13 @@ class MaxSensor(CulDeviceEntity, SensorEntity):
         await super().async_added_to_hass()
         if self.entity_description.follows_schedule:
             self.async_on_remove(
-                async_track_time_interval(
-                    self.hass, lambda _now: self.async_write_ha_state(), SCHEDULE_REFRESH
-                )
+                async_track_time_interval(self.hass, self._refresh, SCHEDULE_REFRESH)
             )
+
+    @callback
+    def _refresh(self, _now: datetime) -> None:
+        # Must be a callback: a plain function would run in a worker thread.
+        self.async_write_ha_state()
 
     @property
     def native_value(self) -> float | int | str | datetime | None:

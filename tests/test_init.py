@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 from homeassistant.components.climate import (
     ATTR_HVAC_ACTION,
     ATTR_PRESET_MODE,
@@ -18,8 +20,12 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 from pycul.protocols.max import MessageType
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.cul.const import CONF_EXTERNAL, CONF_TEMPERATURE_SENSOR, DOMAIN
 
@@ -183,3 +189,13 @@ async def test_external_temperature_sensor(
     controls = [m for m in stick.transmitted if m.type is MessageType.WALL_THERMOSTAT_CONTROL]
     assert controls and controls[-1].src == "111111"
     assert controls[-1].payload[1] == 196  # 19.6 degree
+
+
+async def test_schedule_sensors_refresh_in_the_event_loop(
+    hass: HomeAssistant, stick: FakeStick, config_entry: MockConfigEntry
+) -> None:
+    await _setup_with_thermostat(hass, stick, config_entry)
+    # The minute timer must not write state from a worker thread (HA raises then).
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=2))
+    await hass.async_block_till_done(wait_background_tasks=True)
+    assert hass.states.get("sensor.max_radiator_thermostat_0a1b2c_scheduled_temperature")
