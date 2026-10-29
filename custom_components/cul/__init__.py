@@ -42,13 +42,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: CulConfigEntry) -> bool:
     await hub.async_setup()
     entry.runtime_data = hub
 
-    dr.async_get(hass).async_get_or_create(
-        config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, entry.entry_id)},
-        manufacturer="busware",
-        model="CUL",
-        name=entry.title,
-        sw_version=", ".join(c.version.version for c in hub.culs if c.version),
+    hub.device_id = (
+        dr.async_get(hass)
+        .async_get_or_create(
+            config_entry_id=entry.entry_id,
+            identifiers={(DOMAIN, entry.entry_id)},
+            manufacturer="busware",
+            model="CUL",
+            name=entry.title,
+            sw_version=", ".join(c.version.version for c in hub.culs if c.version),
+        )
+        .id
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

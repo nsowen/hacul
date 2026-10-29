@@ -19,7 +19,7 @@ from homeassistant.components.climate import (
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.util import dt as dt_util
 from pycul.protocols.max import MessageType
 from pytest_homeassistant_custom_component.common import (
@@ -199,3 +199,14 @@ async def test_schedule_sensors_refresh_in_the_event_loop(
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=2))
     await hass.async_block_till_done(wait_background_tasks=True)
     assert hass.states.get("sensor.max_radiator_thermostat_0a1b2c_scheduled_temperature")
+
+
+async def test_devices_hang_below_the_cul(
+    hass: HomeAssistant, stick: FakeStick, config_entry: MockConfigEntry
+) -> None:
+    await _setup_with_thermostat(hass, stick, config_entry)
+    registry = dr.async_get(hass)
+    hub = registry.async_get_device(identifiers={(DOMAIN, config_entry.entry_id)})
+    thermostat = registry.async_get_device(identifiers={(DOMAIN, HT)})
+    assert hub is not None and thermostat is not None
+    assert thermostat.via_device_id == hub.id == config_entry.runtime_data.device_id

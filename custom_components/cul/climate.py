@@ -42,6 +42,7 @@ from .entity import (
     device_time_to_aware,
     setup_device_entities,
     to_local,
+    via_hub,
 )
 from .hub import CulHub
 
@@ -281,7 +282,7 @@ class MaxZoneClimate(MaxClimate):
             model="MAX! heating zone",
             translation_key="zone",
             translation_placeholders={"group": str(group)},
-            via_device=(DOMAIN, hub.entry.entry_id),
+            **via_hub(hub),
         )
 
     @property

@@ -67,6 +67,8 @@ class CulHub:
             hass, STORAGE_VERSION, f"{DOMAIN}.{entry.entry_id}"
         )
         self._unsubscribe: list[Callable[[], None]] = []
+        #: Registry id of the hub device (the CUL), parent of all MAX! devices.
+        self.device_id: str | None = None
         #: Persisted form of each device, to save only when it changed.
         self._stored: dict[str, dict[str, Any]] = {}
 

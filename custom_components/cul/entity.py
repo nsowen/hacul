@@ -34,6 +34,17 @@ def device_time_to_aware(value: datetime) -> datetime:
     return value.replace(tzinfo=dt_util.get_default_time_zone())
 
 
+def via_hub(hub: CulHub) -> DeviceInfo:
+    """Link a device to the hub device (the CUL).
+
+    Home Assistant 2026.10 replaced `via_device` (domain, identifier) with
+    `via_device_id` (registry id); `via_device` stops working in 2027.8.
+    """
+    if "via_device_id" in DeviceInfo.__optional_keys__ and hub.device_id:
+        return DeviceInfo(via_device_id=hub.device_id)  # type: ignore[typeddict-unknown-key]
+    return DeviceInfo(via_device=(DOMAIN, hub.entry.entry_id))  # type: ignore[typeddict-unknown-key]
+
+
 MODELS: dict[DeviceType, str] = {
     DeviceType.HEATING_THERMOSTAT: "MAX! Radiator Thermostat",
     DeviceType.HEATING_THERMOSTAT_PLUS: "MAX! Radiator Thermostat+",
@@ -94,7 +105,7 @@ class CulDeviceEntity(CulEntity):
             name=f"{model} {device.address}",
             serial_number=device.serial,
             sw_version=device.firmware,
-            via_device=(DOMAIN, hub.entry.entry_id),
+            **via_hub(hub),
         )
 
     async def async_added_to_hass(self) -> None:
