@@ -10,7 +10,7 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/nsowen/hacul/issues",
   "loggers": ["pycul"],
-  "requirements": ["https://github.com/nsowen/pycul/archive/6903faf569a61596b70ac5cad876e34830a5fff5.zip#pycul==0.1.0"],
+  "requirements": ["https://github.com/nsowen/pycul/archive/c6744d855cabff6739c63f41526f2750684fec3f.zip#pycul==0.1.1"],
   "usb": [
     {
       "vid": "03EB",
