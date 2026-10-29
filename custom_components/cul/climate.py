@@ -272,7 +272,8 @@ class MaxZoneClimate(MaxClimate):
     def __init__(self, hub: CulHub, group: int) -> None:
         # Not MaxClimate.__init__: the zone has no fixed device.
         CulEntity.__init__(self, hub)
-        self.group = group
+        # Not `group`: Home Assistant reserves that attribute for its group feature.
+        self.zone_group = group
         self._last_on_temperature = None
         self._mode_before_boost = None
         self._attr_unique_id = f"{hub.entry.entry_id}_zone_{group}"
@@ -288,13 +289,13 @@ class MaxZoneClimate(MaxClimate):
     @property
     def device(self) -> MaxDevice:  # type: ignore[override]
         """The lead device; only called while available."""
-        lead = self.hub.zone_lead(self.group)
+        lead = self.hub.zone_lead(self.zone_group)
         assert lead is not None
         return lead
 
     @property
     def available(self) -> bool:
-        return super().available and self.hub.zone_lead(self.group) is not None
+        return super().available and self.hub.zone_lead(self.zone_group) is not None
 
     async def async_added_to_hass(self) -> None:
         """Follow all devices: any of them may join or leave the zone."""
@@ -316,9 +317,9 @@ class MaxZoneClimate(MaxClimate):
 
     @callback
     def _device_updated(self, device: MaxDevice) -> None:
-        if device.group != self.group:
+        if device.group != self.zone_group:
             return
-        if device is self.hub.zone_lead(self.group):
+        if device is self.hub.zone_lead(self.zone_group):
             super()._device_updated(device)  # remembers the last on temperature
         else:
             self.async_write_ha_state()
@@ -330,7 +331,7 @@ class MaxZoneClimate(MaxClimate):
             return HVACAction.OFF
         valves = [
             d.state.valve_position
-            for d in self.hub.protocol.devices_in_group(self.group)
+            for d in self.hub.protocol.devices_in_group(self.zone_group)
             if d.state.valve_position is not None
         ]
         if not valves:
@@ -354,5 +355,7 @@ class MaxZoneClimate(MaxClimate):
 
     def _thermostats(self) -> list[MaxDevice]:
         return [
-            d for d in self.hub.protocol.devices_in_group(self.group) if d.device_type.is_thermostat
+            d
+            for d in self.hub.protocol.devices_in_group(self.zone_group)
+            if d.device_type.is_thermostat
         ]

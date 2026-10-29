@@ -262,9 +262,20 @@ class CulHub:
                 return device
         return self.protocol.group_representative(group) if members else None
 
+    def registry_device(self, address: str) -> dr.DeviceEntry | None:
+        """Return the registry entry of a MAX! device of this network.
+
+        Home Assistant 2026.10 deprecates async_get_device (identifiers are no
+        longer unique across config entries; removed in 2027.8).
+        """
+        registry = dr.async_get(self.hass)
+        if hasattr(registry, "async_get_device_by_identifier"):
+            return registry.async_get_device_by_identifier((DOMAIN, address), self.entry.entry_id)
+        return registry.async_get_device(identifiers={(DOMAIN, address)})
+
     def device_name(self, address: str) -> str:
         """Return the name of a MAX! device as shown in Home Assistant."""
-        entry = dr.async_get(self.hass).async_get_device(identifiers={(DOMAIN, address)})
+        entry = self.registry_device(address)
         return (entry.name_by_user or entry.name or address) if entry else address
 
     # ------------------------------------------------------------------ zones

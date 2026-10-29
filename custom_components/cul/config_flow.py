@@ -15,7 +15,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import area_registry as ar, device_registry as dr
+from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers.selector import (
     BooleanSelector,
     EntitySelector,
@@ -422,11 +422,10 @@ class CulOptionsFlow(OptionsFlow):
         def names(addresses: list[str]) -> str:
             return ", ".join(hub.device_name(a) for a in addresses)
 
-        registry = dr.async_get(self.hass)
         areas = ar.async_get(self.hass)
         by_area: dict[str, list[str]] = {}
         for address in devices:
-            entry = registry.async_get_device(identifiers={(DOMAIN, address)})
+            entry = hub.registry_device(address)
             if entry and entry.area_id:
                 by_area.setdefault(entry.area_id, []).append(address)
         for area_id, members in sorted(by_area.items()):
@@ -562,12 +561,11 @@ class CulOptionsFlow(OptionsFlow):
     # ----------------------------------------------------------- thermostats
 
     def _thermostat_options(self) -> list[SelectOptionDict]:
-        registry = dr.async_get(self.hass)
         options = []
         for address, device in self.config_entry.runtime_data.devices.items():
             if not device.device_type.is_thermostat:
                 continue
-            entry = registry.async_get_device(identifiers={(DOMAIN, address)})
+            entry = self.config_entry.runtime_data.registry_device(address)
             name = (entry.name_by_user or entry.name) if entry else None
             options.append(SelectOptionDict(value=address, label=f"{name or address} ({address})"))
         return sorted(options, key=lambda o: o["label"])
