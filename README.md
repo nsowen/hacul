@@ -84,6 +84,13 @@ MAX! devices only accept commands from the controller they are paired with.
   on the CUL device in Home Assistant, then hold the device's boost button
   until it shows its pairing countdown.
 
+A device that was **never paired to the controller does not appear here**,
+even when it is alive and broadcasting its state: only messages addressed to
+the controller make it visible. Window contacts in particular were often
+never paired to FHEM at all — FHEM displayed their broadcast state without
+needing any pairing. Press *Start pairing* and use the device's pair button;
+the device keeps its address.
+
 ## Entities
 
 Per thermostat:
@@ -296,6 +303,10 @@ many thermostats at the same time.
 
 ## Troubleshooting
 
+- After a Home Assistant restart, some entities (notably the climate set
+  point and mode) can stay unknown until the device reports again — turning
+  the wheel or sending a command refreshes them right away. Device state is
+  not yet persisted across restarts.
 - Unplugging the stick makes the entities unavailable; when it is plugged in
   again, the integration reconnects within seconds (Home Assistant reports the
   USB device) and resends what was queued. Configure the stick with its
