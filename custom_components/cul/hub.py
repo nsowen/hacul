@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from dataclasses import asdict, replace
 from datetime import datetime
 import logging
 from typing import TYPE_CHECKING, Any
@@ -18,7 +19,13 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
 from pycul import Cul, CulError, SendCancelledError
-from pycul.protocols.max import DeviceType, MaxDevice, MaxProtocol
+from pycul.protocols.max import (
+    DeviceType,
+    MaxDevice,
+    MaxProtocol,
+    TemperatureConfig,
+    ValveConfig,
+)
 
 from .const import (
     CONF_ADOPT_DEVICES,
@@ -63,6 +70,9 @@ class CulHub:
         self.protocol: MaxProtocol
         #: Fake device links confirmed by the thermostats: {address: {"fake_wt": True}}.
         self.links: dict[str, dict[str, bool]] = {}
+        #: Device configuration that cannot be read over the air:
+        #: {address: {"temperature": {...}, "valve": {...}}} — last written.
+        self.configs: dict[str, dict[str, Any]] = {}
         self._store: Store[dict[str, Any]] = Store(
             hass, STORAGE_VERSION, f"{DOMAIN}.{entry.entry_id}"
         )
@@ -80,6 +90,7 @@ class CulHub:
         devices = [MaxDevice.from_dict(d) for d in data.get("devices", [])]
         self._stored = {d.address: d.to_dict() for d in devices}
         self.links = data.get("links", {})
+        self.configs = data.get("configs", {})
 
         config = self.entry.data
         options = self.entry.options
@@ -184,6 +195,7 @@ class CulHub:
         self.protocol.remove_device(address)
         self.links.pop(address, None)
         self._stored.pop(address, None)
+        self.configs.pop(address, None)
         self._schedule_save()
 
     # -------------------------------------------------------------- callbacks
@@ -239,7 +251,47 @@ class CulHub:
         return {
             "devices": [device.to_dict() for device in self.protocol.devices.values()],
             "links": self.links,
+            "configs": self.configs,
         }
+
+    # --------------------------------------------------------- configuration
+
+    def temperature_config(self, address: str) -> TemperatureConfig:
+        """The temperature configuration last written to the device.
+
+        MAX! devices do not report their configuration over the air; the
+        factory default is returned until something is written.
+        """
+        data = self.configs.get(address, {}).get("temperature")
+        return TemperatureConfig(**data) if data else TemperatureConfig()
+
+    def valve_config(self, address: str) -> ValveConfig:
+        """The valve configuration last written to the device (factory default until written)."""
+        data = self.configs.get(address, {}).get("valve")
+        return ValveConfig(**data) if data else ValveConfig()
+
+    async def async_configure_temperatures(self, address: str, **changes: Any) -> None:
+        """Change single temperature settings; the radio message carries all of them.
+
+        The devices cannot report their configuration, so the other settings
+        are kept as last set instead of reverting to factory defaults. The
+        cache is updated before the frame goes out: a change that follows
+        while a frame is on air merges into the next one (the queue replaces
+        a pending frame for the same device) instead of racing it.
+        """
+        config = replace(self.temperature_config(address), **changes)
+        self._store_config(address, "temperature", asdict(config))
+        await self.protocol.configure_temperatures(address, config)
+
+    async def async_configure_valve(self, address: str, **changes: Any) -> None:
+        """Change single valve settings; the radio message carries all of them."""
+        config = replace(self.valve_config(address), **changes)
+        self._store_config(address, "valve", asdict(config))
+        await self.protocol.configure_valve(address, config)
+
+    def _store_config(self, address: str, kind: str, data: dict[str, Any]) -> None:
+        self.configs.setdefault(address, {})[kind] = data
+        self._schedule_save()
 
     def zones(self) -> set[int]:
         """Return the group ids that contain at least one thermostat."""

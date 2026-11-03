@@ -228,6 +228,49 @@
       "display_actual_temperature": {
         "name": "Gemessene Temperatur anzeigen"
       }
+    },
+    "number": {
+      "comfort": {
+        "name": "Komforttemperatur"
+      },
+      "eco": {
+        "name": "Ecotemperatur"
+      },
+      "maximum": {
+        "name": "Maximale Temperatur"
+      },
+      "minimum": {
+        "name": "Minimale Temperatur"
+      },
+      "measurement_offset": {
+        "name": "Messwert-Korrektur"
+      },
+      "window_open_temperature": {
+        "name": "Temperatur bei geöffnetem Fenster"
+      },
+      "window_open_duration": {
+        "name": "Dauer bei geöffnetem Fenster"
+      },
+      "boost_valve_position": {
+        "name": "Boost-Ventilstellung"
+      },
+      "decalcification_hour": {
+        "name": "Entkalkungsstunde"
+      },
+      "max_valve_setting": {
+        "name": "Maximale Ventilstellung"
+      },
+      "valve_offset": {
+        "name": "Ventil-Offset"
+      }
+    },
+    "select": {
+      "boost_duration": {
+        "name": "Boost-Dauer"
+      },
+      "decalcification_day": {
+        "name": "Entkalkungstag"
+      }
     }
   },
   "exceptions": {
