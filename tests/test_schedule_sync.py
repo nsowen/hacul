@@ -29,6 +29,12 @@ from custom_components.cul.schedule_sync import schedule_to_week_profile
 from .conftest import HT, ME, FakeStick, frame
 
 
+@pytest.fixture
+def expected_lingering_timers() -> bool:
+    """The schedule helper entity (Home Assistant core) keeps its timer for the next change."""
+    return True
+
+
 def test_schedule_to_week_profile() -> None:
     schedule = {
         "monday": [

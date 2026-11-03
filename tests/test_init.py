@@ -206,7 +206,9 @@ async def test_devices_hang_below_the_cul(
 ) -> None:
     await _setup_with_thermostat(hass, stick, config_entry)
     registry = dr.async_get(hass)
-    hub = registry.async_get_device(identifiers={(DOMAIN, config_entry.entry_id)})
-    thermostat = registry.async_get_device(identifiers={(DOMAIN, HT)})
+    hub = registry.async_get_device_by_identifier(
+        (DOMAIN, config_entry.entry_id), config_entry.entry_id
+    )
+    thermostat = registry.async_get_device_by_identifier((DOMAIN, HT), config_entry.entry_id)
     assert hub is not None and thermostat is not None
     assert thermostat.via_device_id == hub.id == config_entry.runtime_data.device_id

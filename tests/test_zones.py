@@ -84,7 +84,7 @@ async def test_room_from_area(
     area = ar.async_get(hass).async_create("Living room")
     devices = dr.async_get(hass)
     for address in (HT, WT):
-        device = devices.async_get_device(identifiers={(DOMAIN, address)})
+        device = devices.async_get_device_by_identifier((DOMAIN, address), config_entry.entry_id)
         devices.async_update_device(device.id, area_id=area.id)
 
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -165,7 +165,7 @@ async def test_large_area_is_split_into_zones(
     loft = ar.async_get(hass).async_create("Loft")
     devices = dr.async_get(hass)
     for address in (HT, WT, HT2, WT2):
-        device = devices.async_get_device(identifiers={(DOMAIN, address)})
+        device = devices.async_get_device_by_identifier((DOMAIN, address), config_entry.entry_id)
         devices.async_update_device(device.id, area_id=loft.id)
 
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
