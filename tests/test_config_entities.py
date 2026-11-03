@@ -115,21 +115,26 @@ async def test_wall_thermostat_has_no_valve_settings(
     assert not hass.states.get("number.max_wall_thermostat_0e0e0e_max_valve_setting")
 
 
-async def test_changes_while_a_frame_is_on_air_merge(
+async def test_rapid_changes_merge_into_one_frame(
     hass: HomeAssistant, stick: FakeStick, config_entry: MockConfigEntry
 ) -> None:
+    """Arrow-button spam and quick edits collapse into one frame without losing values."""
     await _setup(hass, stick, config_entry)
     hub = config_entry.runtime_data
     stick.transmitted.clear()
     await asyncio.gather(
         hub.async_configure_temperatures(HT, window_open_temperature=7),
         hub.async_configure_temperatures(HT, comfort=22.0),
+        hub.async_configure_temperatures(HT, comfort=22.5),
+        hub.async_configure_temperatures(HT, comfort=23.0),
     )
     config = hub.temperature_config(HT)
-    assert (config.comfort, config.window_open_temperature) == (22.0, 7.0)
-    # However the two sends interleave, the last frame carries both changes.
+    assert (config.comfort, config.window_open_temperature) == (23.0, 7.0)
+    # The queued frame absorbs the newer payloads: one frame (two if one was
+    # already on air), and the last one carries every change.
+    assert 1 <= len(stick.transmitted) <= 2
     assert stick.transmitted[-1].payload == TemperatureConfig(
-        comfort=22.0, window_open_temperature=7.0
+        comfort=23.0, window_open_temperature=7.0
     ).encode()
 
 
