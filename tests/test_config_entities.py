@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import timedelta
 
 from homeassistant.components.number import ATTR_VALUE, DOMAIN as NUMBER_DOMAIN, SERVICE_SET_VALUE
@@ -112,6 +113,24 @@ async def test_wall_thermostat_has_no_valve_settings(
     )
     assert not hass.states.get("select.max_wall_thermostat_0e0e0e_boost_duration")
     assert not hass.states.get("number.max_wall_thermostat_0e0e0e_max_valve_setting")
+
+
+async def test_changes_while_a_frame_is_on_air_merge(
+    hass: HomeAssistant, stick: FakeStick, config_entry: MockConfigEntry
+) -> None:
+    await _setup(hass, stick, config_entry)
+    hub = config_entry.runtime_data
+    stick.transmitted.clear()
+    await asyncio.gather(
+        hub.async_configure_temperatures(HT, window_open_temperature=7),
+        hub.async_configure_temperatures(HT, comfort=22.0),
+    )
+    config = hub.temperature_config(HT)
+    assert (config.comfort, config.window_open_temperature) == (22.0, 7.0)
+    # However the two sends interleave, the last frame carries both changes.
+    assert stick.transmitted[-1].payload == TemperatureConfig(
+        comfort=22.0, window_open_temperature=7.0
+    ).encode()
 
 
 async def test_written_config_survives_a_reload(

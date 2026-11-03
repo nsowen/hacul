@@ -274,17 +274,20 @@ class CulHub:
         """Change single temperature settings; the radio message carries all of them.
 
         The devices cannot report their configuration, so the other settings
-        are kept as last written instead of reverting to factory defaults.
+        are kept as last set instead of reverting to factory defaults. The
+        cache is updated before the frame goes out: a change that follows
+        while a frame is on air merges into the next one (the queue replaces
+        a pending frame for the same device) instead of racing it.
         """
         config = replace(self.temperature_config(address), **changes)
-        await self.protocol.configure_temperatures(address, config)
         self._store_config(address, "temperature", asdict(config))
+        await self.protocol.configure_temperatures(address, config)
 
     async def async_configure_valve(self, address: str, **changes: Any) -> None:
         """Change single valve settings; the radio message carries all of them."""
         config = replace(self.valve_config(address), **changes)
-        await self.protocol.configure_valve(address, config)
         self._store_config(address, "valve", asdict(config))
+        await self.protocol.configure_valve(address, config)
 
     def _store_config(self, address: str, kind: str, data: dict[str, Any]) -> None:
         self.configs.setdefault(address, {})[kind] = data
