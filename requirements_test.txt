@@ -1,5 +1,6 @@
 pytest-homeassistant-custom-component
 aiousbwatcher==1.1.1
 pyserial==3.5
+serialx  # imported by homeassistant.components.usb (lazy HA dependency)
 -e ../pycul
 ruff
