@@ -96,6 +96,9 @@ Per thermostat:
 | Mode, Temporary until | The device's own mode (automatic, manual, temporary, boost) and the end of a temporary set point. |
 | Scheduled temperature, Next schedule change | Derived from the week profile, once it is known (see below). |
 | Show measured temperature | Wall thermostats: display the room temperature instead of the set point. |
+| Comfort, Eco, Minimum, Maximum temperature, Measured temperature offset | Thermostat configuration. Devices do not report their configuration, so these show what was last written (or the factory default). |
+| Window-open temperature, Window-open duration | What the thermostat switches to when a linked window contact reports an open window, and for how long. Part of the thermostat's configuration, so the behaviour also works with the stick unplugged. |
+| Boost valve position, Boost duration, Decalcification day and hour, Maximum valve setting, Valve offset | Radiator thermostats only. Every change writes the whole configuration block to the device, keeping the other values as last written. |
 | Battery, Radio link, Buttons locked, Heating zone | Diagnostic. *Radio link* reports a problem when the device lost contact to its link partners. |
 | Signal strength, Last seen | Diagnostic; signal strength (also per stick, with several sticks) is disabled by default. |
 | Automatic daylight saving time, Paired with controller | Diagnostic status flags, disabled by default. |
