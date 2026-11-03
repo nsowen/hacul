@@ -90,6 +90,8 @@ config, and never reset the cache to assumed values.
 
 - `python -m pytest` (see the README for the venv setup; pycul comes from a
   sibling checkout via `requirements_test.txt`).
+- The suite needs a **POSIX environment** (Home Assistant imports `fcntl`):
+  run it on Linux, macOS or in WSL on Windows.
 - Tests live in `tests/` as `async def test_...` (plus pure unit tests), using
   **pytest-homeassistant-custom-component** (`MockConfigEntry`,
   `enable_custom_integrations`, `hass` fixture).
