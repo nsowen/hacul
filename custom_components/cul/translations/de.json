@@ -54,11 +54,13 @@
         "title": "Einstellungen",
         "data": {
           "adopt_devices": "Gepairte Geräte übernehmen",
-          "fast_send_after_wake_up": "Schnelles Senden nach dem Aufwecken (experimentell)"
+          "fast_send_after_wake_up": "Schnelles Senden nach dem Aufwecken (experimentell)",
+          "state_refresh_interval": "Intervall zur Zustandsaktualisierung"
         },
         "data_description": {
           "adopt_devices": "Geräte, die bereits mit dieser Controller-Adresse gepairt sind, hinzufügen, sobald sie etwas senden.",
-          "fast_send_after_wake_up": "Warten mehrere Nachrichten auf ein Thermostat, wird es zuerst aufgeweckt und der Rest ohne die 1-Sekunden-Präambel gesendet. Spart Sendezeit, ist aber noch nicht auf allen Geräten bestätigt."
+          "fast_send_after_wake_up": "Warten mehrere Nachrichten auf ein Thermostat, wird es zuerst aufgeweckt und der Rest ohne die 1-Sekunden-Präambel gesendet. Spart Sendezeit, ist aber noch nicht auf allen Geräten bestätigt.",
+          "state_refresh_interval": "Thermostate melden lokale Bedienung (das Rad, die Boost-Taste) nicht von selbst. So oft wird ein ruhiges Thermostat mit einem Zeittelegramm nach seinem Zustand gefragt; jede Quittung enthält den vollständigen Zustand. Jede Abfrage verbraucht etwa eine Sekunde der 36 Sekunden pro Stunde, die ein Stick senden darf. 0 schaltet die Abfrage ab."
         }
       },
       "add_stick": {

@@ -50,6 +50,7 @@ from .const import (
     CONF_SCHEDULE_ENTITY,
     CONF_SCHEDULES,
     CONF_SEND_INTERVAL,
+    CONF_STATE_REFRESH_INTERVAL,
     CONF_STICKS,
     CONF_TEMPERATURE_SENSOR,
     CONF_URL,
@@ -61,6 +62,7 @@ from .const import (
     DEFAULT_MAX_ADDRESS,
     DEFAULT_SCHEDULE_TEMPERATURE,
     DEFAULT_SEND_INTERVAL,
+    DEFAULT_STATE_REFRESH_INTERVAL,
     DOMAIN,
     PROTOCOL_MAX,
 )
@@ -346,6 +348,20 @@ class CulOptionsFlow(OptionsFlow):
                     vol.Required(
                         CONF_FAST_SEND, default=options.get(CONF_FAST_SEND, False)
                     ): BooleanSelector(),
+                    vol.Required(
+                        CONF_STATE_REFRESH_INTERVAL,
+                        default=options.get(
+                            CONF_STATE_REFRESH_INTERVAL, DEFAULT_STATE_REFRESH_INTERVAL
+                        ),
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=0,
+                            max=86400,
+                            step=60,
+                            unit_of_measurement="s",
+                            mode=NumberSelectorMode.BOX,
+                        )
+                    ),
                 }
             ),
         )

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -29,12 +29,14 @@ from .const import (
     CONF_FAST_SEND,
     CONF_MAX_ADDRESS,
     CONF_NAME,
+    CONF_STATE_REFRESH_INTERVAL,
     CONF_STICKS,
     CONF_TEMPERATURE_SENSOR,
     CONF_URL,
     CONF_WINDOW_SENSOR,
     CREDIT_REFRESH_INTERVAL,
     DEFAULT_BAUDRATE,
+    DEFAULT_STATE_REFRESH_INTERVAL,
     DOMAIN,
     STORAGE_SAVE_DELAY,
     STORAGE_VERSION,
@@ -71,6 +73,9 @@ class CulHub:
         self.device_id: str | None = None
         #: Persisted form of each device, to save only when it changed.
         self._stored: dict[str, dict[str, Any]] = {}
+        #: State refresh interval in seconds; 0 disables the probing.
+        self._state_refresh: int = 0
+        self._refreshing = False
 
     # --------------------------------------------------------------- lifecycle
 
@@ -125,6 +130,20 @@ class CulHub:
         self._unsubscribe.append(
             async_track_time_interval(self.hass, self._refresh_credits, CREDIT_REFRESH_INTERVAL)
         )
+        self._state_refresh = options.get(
+            CONF_STATE_REFRESH_INTERVAL, DEFAULT_STATE_REFRESH_INTERVAL
+        )
+        if self._state_refresh > 0:
+            self._unsubscribe.append(
+                async_track_time_interval(
+                    self.hass, self._refresh_states, timedelta(seconds=self._state_refresh)
+                )
+            )
+            # Also probe right away: device state is not persisted yet, so it
+            # is unknown after every restart until the devices report.
+            self.entry.async_create_background_task(
+                self.hass, self._refresh_states(None), f"{DOMAIN} state refresh"
+            )
         self.entry.async_create_background_task(
             self.hass, self.async_reconcile_links(), f"{DOMAIN} reconcile links"
         )
@@ -227,6 +246,32 @@ class CulHub:
                 except CulError as err:
                     _LOGGER.debug("Credit query on %s failed: %s", cul.name, err)
         self._signal_hub()
+
+    async def _refresh_states(self, _now: datetime | None) -> None:
+        """Ask thermostats that have been quiet for too long for their state.
+
+        Thermostats do not report local operation (the knob, the boost button)
+        over the air - but every Ack from a thermostat carries its state, so a
+        benign time frame doubles as a state query. Window contacts are
+        skipped: they only receive frames right after they transmit.
+        """
+        if self._refreshing or self._state_refresh <= 0 or not self.available:
+            return
+        self._refreshing = True
+        try:
+            deadline = datetime.now(UTC) - timedelta(seconds=self._state_refresh)
+            for device in list(self.devices.values()):
+                if not device.device_type.is_thermostat:
+                    continue
+                last_seen = device.state.last_seen
+                if last_seen is not None and last_seen > deadline:
+                    continue  # a recent frame already carried the state
+                try:
+                    await self.protocol.send_time_information(device.address)
+                except CulError as err:
+                    _LOGGER.debug("State refresh for %s failed: %s", device.address, err)
+        finally:
+            self._refreshing = False
 
     # ------------------------------------------------------------- persisting
 
