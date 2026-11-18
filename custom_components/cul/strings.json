@@ -54,11 +54,13 @@
         "title": "Settings",
         "data": {
           "adopt_devices": "Adopt paired devices",
-          "fast_send_after_wake_up": "Fast send after wake-up (experimental)"
+          "fast_send_after_wake_up": "Fast send after wake-up (experimental)",
+          "state_refresh_interval": "State refresh interval"
         },
         "data_description": {
           "adopt_devices": "Add devices that are already paired with this controller address as soon as they send something.",
-          "fast_send_after_wake_up": "When several messages wait for one thermostat, wake it up first and send the rest without the 1 second preamble. Saves airtime, not yet confirmed on all devices."
+          "fast_send_after_wake_up": "When several messages wait for one thermostat, wake it up first and send the rest without the 1 second preamble. Saves airtime, not yet confirmed on all devices.",
+          "state_refresh_interval": "Thermostats do not report local operation (the knob, the boost button) on their own. This often, a quiet thermostat is asked for its state with a time frame; every Ack carries the full state. Each probe uses about a second of the 36 seconds per hour a stick may send. 0 turns the probing off."
         }
       },
       "add_stick": {

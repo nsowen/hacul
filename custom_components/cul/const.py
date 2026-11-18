@@ -32,6 +32,7 @@ CONF_EXTERNAL: Final = "external_sensors"
 CONF_TEMPERATURE_SENSOR: Final = "temperature_sensor"
 CONF_WINDOW_SENSOR: Final = "window_sensor"
 CONF_SEND_INTERVAL: Final = "send_interval"
+CONF_STATE_REFRESH_INTERVAL: Final = "state_refresh_interval"
 
 DEFAULT_BAUDRATE: Final = 38400
 DEFAULT_MAX_ADDRESS: Final = "123456"
@@ -42,6 +43,7 @@ DEFAULT_SCHEDULE_TEMPERATURE: Final = 21.0
 #: Minimum seconds between two fake wall thermostat updates of one thermostat.
 #: One update costs ~1.1 s of the 36 s per hour a stick may send.
 DEFAULT_SEND_INTERVAL: Final = 600
+DEFAULT_STATE_REFRESH_INTERVAL: Final = 1800
 PAIRING_DURATION: Final = 60
 
 #: busware CUL USB ids (Atmel VID).
